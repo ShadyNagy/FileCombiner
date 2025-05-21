@@ -9,7 +9,7 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
 		<PackageId>FileCombiner</PackageId>
-		<Version>1.0.6</Version>
+		<Version>1.0.7</Version>
 		<Authors>Shady Nagy</Authors>
 		<Company>ShadyNagy</Company>
 		<Description>A robust .NET library for combining multiple files into a single output file with comprehensive configuration options.</Description>

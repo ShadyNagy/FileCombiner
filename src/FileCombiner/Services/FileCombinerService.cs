@@ -36,7 +36,6 @@ public class FileCombinerService : IFileCombinerService
 			return FileCombinerResult.Failure("Error during file combining: OutputPath is empty or null");
 		}
 
-		// Validate that either DirectoryPath or ExplicitFilePaths is provided
 		if (string.IsNullOrEmpty(options.DirectoryPath) && (options.ExplicitFilePaths == null || options.ExplicitFilePaths.Length == 0))
 		{
 			_logger.LogError("Either DirectoryPath or ExplicitFilePaths must be provided");
@@ -85,7 +84,6 @@ public class FileCombinerService : IFileCombinerService
 			throw new ArgumentNullException(nameof(options));
 		}
 
-		// Validate that either DirectoryPath or ExplicitFilePaths is provided
 		if (string.IsNullOrEmpty(options.DirectoryPath) && (options.ExplicitFilePaths == null || options.ExplicitFilePaths.Length == 0))
 		{
 			_logger.LogError("Either DirectoryPath or ExplicitFilePaths must be provided");
@@ -93,11 +91,11 @@ public class FileCombinerService : IFileCombinerService
 		}
 
 		_logger.LogInformation("Starting file combining to string with directory: {Directory}, explicit files: {ExplicitFileCount}",
-						options.DirectoryPath, options.ExplicitFilePaths?.Length ?? 0);
+										options.DirectoryPath, options.ExplicitFilePaths?.Length ?? 0);
 
 		try
 		{
-			var scanResult = ScanDirectory(new FileScanOptions
+			var scanOptions = new FileScanOptions
 			{
 				DirectoryPath = options.DirectoryPath,
 				FileExtensions = options.FileExtensions,
@@ -105,9 +103,15 @@ public class FileCombinerService : IFileCombinerService
 				FileFilter = options.FileFilter,
 				ExcludeFolders = options.ExcludeFolders,
 				ExcludeFileExtensions = options.ExcludeFileExtensions,
-				ExcludeFiles = options.ExcludeFiles,
-				ExplicitFilePaths = options.ExplicitFilePaths!
-			});
+				ExcludeFiles = options.ExcludeFiles
+			};
+
+			if (options.ExplicitFilePaths != null)
+			{
+				scanOptions.ExplicitFilePaths = options.ExplicitFilePaths;
+			}
+
+			var scanResult = ScanDirectory(scanOptions);
 
 			if (!scanResult.IsSuccess)
 			{
@@ -127,31 +131,50 @@ public class FileCombinerService : IFileCombinerService
 			var encoding = options.Encoding ?? Encoding.UTF8;
 			int fileCount = 0;
 
+			var explicitFullPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+			if (!string.IsNullOrEmpty(options.DirectoryPath) && options.ExplicitFilePaths != null)
+			{
+				foreach (var explicitPath in options.ExplicitFilePaths)
+				{
+					explicitFullPaths.Add(Path.Combine(options.DirectoryPath, explicitPath));
+				}
+			}
+
 			foreach (var filePath in scanResult.FilePaths)
 			{
 				try
 				{
 					var fileContent = await File.ReadAllTextAsync(filePath, encoding);
+					string relativePath;
 
-					string relativePath = string.Empty;
-					if (options.ExplicitFilePaths?.Contains(filePath) == true && !string.IsNullOrEmpty(options.DirectoryPath) &&
-							!filePath.StartsWith(options.DirectoryPath, StringComparison.OrdinalIgnoreCase))
+					bool isExplicitFile = !string.IsNullOrEmpty(options.DirectoryPath)
+							? explicitFullPaths.Contains(filePath)
+							: options.ExplicitFilePaths?.Contains(filePath) == true;
+
+					if (isExplicitFile && !string.IsNullOrEmpty(options.DirectoryPath))
 					{
-						relativePath = filePath;
+						string originalRelativePath = options.ExplicitFilePaths!
+								.FirstOrDefault(p => Path.Combine(options.DirectoryPath, p).Equals(filePath, StringComparison.OrdinalIgnoreCase)) ?? "";
+
+						relativePath = originalRelativePath;
+					}
+					else if (!string.IsNullOrEmpty(options.DirectoryPath))
+					{
+						relativePath = GetRelativePath(options.DirectoryPath, filePath);
 					}
 					else
 					{
-						if (!string.IsNullOrEmpty(options.DirectoryPath))
-							relativePath = GetRelativePath(options.DirectoryPath, filePath);
+						relativePath = filePath;
 					}
 
 					if (options.IncludeFileHeaders)
 					{
 						var header = options.HeaderFormat
-										.Replace("{path}", relativePath)
-										.Replace("{name}", Path.GetFileName(filePath))
-										.Replace("{ext}", Path.GetExtension(filePath))
-										.Replace("{index}", fileCount.ToString());
+														.Replace("{path}", relativePath)
+														.Replace("{name}", Path.GetFileName(filePath))
+														.Replace("{ext}", Path.GetExtension(filePath))
+														.Replace("{index}", fileCount.ToString());
 
 						contentBuilder.AppendLine(header);
 					}
@@ -174,7 +197,7 @@ public class FileCombinerService : IFileCombinerService
 
 			string content = contentBuilder.ToString();
 			_logger.LogInformation("Successfully combined {Count} files into string content ({Size} bytes)",
-							fileCount, content.Length);
+											fileCount, content.Length);
 
 			return FileCombinerContentResult.Success(content, fileCount);
 		}
@@ -194,7 +217,7 @@ public class FileCombinerService : IFileCombinerService
 		}
 
 		_logger.LogDebug("Scanning directory {Directory} for files with extensions {Extensions}, recursive: {Recursive}",
-						options.DirectoryPath, string.Join(", ", options.FileExtensions), options.IncludeSubdirectories);
+										options.DirectoryPath, string.Join(", ", options.FileExtensions), options.IncludeSubdirectories);
 
 		try
 		{
@@ -204,16 +227,27 @@ public class FileCombinerService : IFileCombinerService
 			{
 				_logger.LogDebug("Processing {Count} explicit file paths", options.ExplicitFilePaths.Length);
 
-				foreach (var filePath in options.ExplicitFilePaths)
+				foreach (var explicitPath in options.ExplicitFilePaths)
 				{
-					if (File.Exists(filePath))
+					string fullPath;
+
+					if (!string.IsNullOrEmpty(options.DirectoryPath))
 					{
-						_logger.LogDebug("Adding explicit file: {FilePath}", filePath);
-						resultFiles.Add(filePath);
+						fullPath = Path.Combine(options.DirectoryPath, explicitPath);
 					}
 					else
 					{
-						_logger.LogWarning("Explicit file not found: {FilePath}", filePath);
+						fullPath = explicitPath;
+					}
+
+					if (File.Exists(fullPath))
+					{
+						_logger.LogDebug("Adding explicit file: {FilePath}", fullPath);
+						resultFiles.Add(fullPath);
+					}
+					else
+					{
+						_logger.LogWarning("Explicit file not found: {FilePath}", fullPath);
 					}
 				}
 			}
@@ -231,8 +265,8 @@ public class FileCombinerService : IFileCombinerService
 				else
 				{
 					var searchOption = options.IncludeSubdirectories
-									? SearchOption.AllDirectories
-									: SearchOption.TopDirectoryOnly;
+													? SearchOption.AllDirectories
+													: SearchOption.TopDirectoryOnly;
 
 					IEnumerable<string> filePaths;
 
@@ -243,16 +277,16 @@ public class FileCombinerService : IFileCombinerService
 					else
 					{
 						filePaths = options.FileExtensions
-										.SelectMany(ext => Directory.GetFiles(
-														options.DirectoryPath,
-														$"*{(ext.StartsWith(".") ? ext : $".{ext}")}",
-														searchOption))
-										.Distinct();
+														.SelectMany(ext => Directory.GetFiles(
+																						options.DirectoryPath,
+																						$"*{(ext.StartsWith(".") ? ext : $".{ext}")}",
+																						searchOption))
+														.Distinct();
 					}
 
 					if (options.ExcludeFolders?.Length > 0 ||
-							options.ExcludeFileExtensions?.Length > 0 ||
-							options.ExcludeFiles?.Length > 0)
+									options.ExcludeFileExtensions?.Length > 0 ||
+									options.ExcludeFiles?.Length > 0)
 					{
 						filePaths = filePaths.Where(path =>
 						{
@@ -261,30 +295,30 @@ public class FileCombinerService : IFileCombinerService
 							var fileExtension = Path.GetExtension(path);
 
 							if (options.ExcludeFolders?.Length > 0 &&
-									options.ExcludeFolders.Any(excludeFolder =>
-									{
-										var normalizedExcludeFolder = excludeFolder.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+											options.ExcludeFolders.Any(excludeFolder =>
+											{
+												var normalizedExcludeFolder = excludeFolder.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
 
-										return relativePath.StartsWith(normalizedExcludeFolder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
-																		 relativePath.Equals(normalizedExcludeFolder, StringComparison.OrdinalIgnoreCase);
-									}))
+												return relativePath.StartsWith(normalizedExcludeFolder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+																											 relativePath.Equals(normalizedExcludeFolder, StringComparison.OrdinalIgnoreCase);
+											}))
 							{
 								return false;
 							}
 
 							if (options.ExcludeFileExtensions?.Length > 0 &&
-									options.ExcludeFileExtensions.Any(ext =>
-									{
-										var normalizedExt = ext.StartsWith(".") ? ext : $".{ext}";
-										return fileExtension.Equals(normalizedExt, StringComparison.OrdinalIgnoreCase);
-									}))
+											options.ExcludeFileExtensions.Any(ext =>
+											{
+												var normalizedExt = ext.StartsWith(".") ? ext : $".{ext}";
+												return fileExtension.Equals(normalizedExt, StringComparison.OrdinalIgnoreCase);
+											}))
 							{
 								return false;
 							}
 
 							if (options.ExcludeFiles?.Length > 0 &&
-									options.ExcludeFiles.Any(excludeFile =>
-											fileName.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)))
+											options.ExcludeFiles.Any(excludeFile =>
+															fileName.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)))
 							{
 								return false;
 							}
@@ -302,7 +336,6 @@ public class FileCombinerService : IFileCombinerService
 				}
 			}
 
-			// Remove duplicates
 			var uniqueFiles = resultFiles.Distinct().ToList();
 			_logger.LogDebug("Found {Count} file(s) matching the criteria", uniqueFiles.Count);
 
