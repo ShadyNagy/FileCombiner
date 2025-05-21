@@ -1,0 +1,100 @@
+name: Build, Test and Publish
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Extract version from CSPROJ
+      id: extract_version
+      run: |
+        # Find the CSPROJ file
+        CSPROJ_PATH=$(find . -name "FileCombiner.csproj" -type f)
+        if [ -z "$CSPROJ_PATH" ]; then
+          echo "csproj file not found"
+          exit 1
+        fi
+        
+        # Extract version from CSPROJ
+        VERSION=$(grep -oP '<version>\K[^<]+' "$CSPROJ_PATH")
+        echo "Extracted version: $VERSION"
+        echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
+        
+        # Check if tag exists for this version
+        git fetch --tags
+        if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+          echo "Tag v$VERSION already exists"
+          echo "TAG_EXISTS=true" >> $GITHUB_ENV
+          echo "IS_RELEASE=true" >> $GITHUB_ENV
+        else
+          echo "Tag v$VERSION does not exist yet"
+          echo "TAG_EXISTS=false" >> $GITHUB_ENV
+          echo "IS_RELEASE=false" >> $GITHUB_ENV
+        fi
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+    
+    - name: Create tag if needed
+      if: github.event_name == 'push' && env.TAG_EXISTS == 'false' && github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      run: |
+        # Configure Git
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        
+        # Create and push tag
+        echo "Creating tag v$PACKAGE_VERSION"
+        git tag "v$PACKAGE_VERSION"
+        git push origin "v$PACKAGE_VERSION"
+        
+        echo "IS_RELEASE=true" >> $GITHUB_ENV
+    
+    - name: Pack
+      if: github.event_name == 'push'
+      run: |
+        dotnet pack src/FileCombiner/FileCombiner.csproj --configuration Release -p:PackageVersion=${{ env.PACKAGE_VERSION }} --no-build -o ./packages
+    
+    - name: Push to NuGet
+      if: github.event_name == 'push' && env.IS_RELEASE == 'true'
+      run: dotnet nuget push ./packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+    
+    - name: Upload NuGet package as artifact
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: ./packages/*.nupkg
+    
+    - name: Create GitHub Release
+      if: github.event_name == 'push' && env.IS_RELEASE == 'true' && env.TAG_EXISTS == 'false'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./packages/*.nupkg
+        name: Release v${{ env.PACKAGE_VERSION }}
+        body: |
+          Release of version ${{ env.PACKAGE_VERSION }}
+        draft: false
+        prerelease: false
+        tag_name: v${{ env.PACKAGE_VERSION }}
