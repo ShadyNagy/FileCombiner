@@ -1,7 +1,7 @@
 ﻿# FileCombiner
 
 [![NuGet](https://img.shields.io/nuget/v/FileCombiner.svg)](https://www.nuget.org/packages/FileCombiner/)
-[![Build Status](https://github.com/ShadyNagy/FileCombiner/workflows/build/badge.svg)](https://github.com/ShadyNagy/FileCombiner/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/ShadyNagy/FileCombiner/.github%2Fworkflows%2Fci-cd.yml)](https://github.com/ShadyNagy/FileCombiner/actions)
 [![License](https://img.shields.io/github/license/ShadyNagy/FileCombiner.svg)](https://github.com/ShadyNagy/FileCombiner/blob/main/LICENSE.md)
 
 A robust .NET library for combining multiple files into a single output file with comprehensive configuration options.
