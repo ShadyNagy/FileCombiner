@@ -1,4 +1,5 @@
-﻿using FileCombiner.Models.Options;
+﻿using System;
+using FileCombiner.Models.Options;
 using FileCombiner.Services;
 using FileCombiner.Services.Abstractions;
 using Microsoft.Extensions.DependencyInjection;

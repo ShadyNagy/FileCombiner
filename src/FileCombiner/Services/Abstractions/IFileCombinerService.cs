@@ -1,4 +1,5 @@
-﻿using FileCombiner.Models.Options;
+﻿using System.Threading.Tasks;
+using FileCombiner.Models.Options;
 using FileCombiner.Models.Results;
 
 namespace FileCombiner.Services.Abstractions;
@@ -12,7 +13,7 @@ public interface IFileCombinerService
 	/// Combines multiple files into a single output file asynchronously.
 	/// </summary>
 	/// <param name="options">The options for the file combining operation.</param>
-	/// <returns>A <see cref="Task{FileCombinerResult}"/> representing the result of the file combining operation.</returns>
+	/// <returns>A <see cref="Task"/> representing the result of the file combining operation.</returns>
 	Task<FileCombinerResult> CombineFilesAsync(FileCombinerOptions options);
 
 	/// <summary>

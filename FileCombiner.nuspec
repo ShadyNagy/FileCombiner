@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>FileCombiner</id>
+    <title>File Combiner</title>
+    <version>1.0.8</version>
+    <authors>Shady Nagy</authors>
+    <owners>Shady Nagy</owners>
+
+    <description>
+      A robust .NET library for combining multiple files into a single output file with comprehensive configuration options.
+    </description>
+
+    <summary>
+			A .NET library to combine multiple files.
+		</summary>
+
+    <language>en-US</language>
+    <license type="expression">MIT</license>
+
+    <repository type="git" url="https://github.com/ShadyNagy/FileCombiner" />
+    <projectUrl>https://github.com/ShadyNagy/FileCombiner</projectUrl>
+    <documentation>https://github.com/ShadyNagy/FileCombiner/wiki</documentation>
+    <issueTracker>https://github.com/ShadyNagy/FileCombiner/issues</issueTracker>
+
+    <releaseNotes>
+			- Initial release of FileCombiner.
+		</releaseNotes>
+
+    <tags>file;combine;merge;concatenate;source;dotnet;csharp</tags>
+
+    <icon>icon.png</icon>
+    <copyright>Copyright 2019 - 2025 (c) Shady Nagy. All rights reserved.</copyright>
+    <readme>README.md</readme>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Dependencies -->
+    <dependencies>
+      <group targetFramework="net8.0">
+      </group>
+    </dependencies>
+
+    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+  </metadata>
+
+  <files>
+    <file src="src\FileCombiner\bin\Release\net80\FileCombiner.dll" target="lib\net8.0" />
+    <file src="icon.png" />
+    <file src="README.md" />
+    <file src="LICENSE" />
+  </files>
+</package>

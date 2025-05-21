@@ -1,4 +1,6 @@
-﻿namespace FileCombiner.Models.Options;
+﻿using System;
+
+namespace FileCombiner.Models.Options;
 
 /// <summary>
 /// Options for file scanning operations.

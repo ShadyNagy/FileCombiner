@@ -1,5 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Threading.Tasks;
 using FileCombiner.Models.Options;
 using FileCombiner.Models.Results;
 using FileCombiner.Services.Abstractions;

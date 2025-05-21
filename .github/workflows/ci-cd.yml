@@ -21,18 +21,18 @@ jobs:
       with:
         dotnet-version: 8.0.x
     
-    - name: Extract version from CSPROJ
+    - name: Extract version from NUSPEC
       id: extract_version
       run: |
-        # Find the CSPROJ file
-        CSPROJ_PATH=$(find . -name "FileCombiner.csproj" -type f)
-        if [ -z "$CSPROJ_PATH" ]; then
-          echo "csproj file not found"
+        # Find the NUSPEC file
+        NUSPEC_PATH=$(find . -name "FileCombiner.nuspec" -type f)
+        if [ -z "$NUSPEC_PATH" ]; then
+          echo "nuspec file not found"
           exit 1
         fi
         
-        # Extract version from CSPROJ
-        VERSION=$(grep -oP '<version>\K[^<]+' "$CSPROJ_PATH")
+        # Extract version from NUSPEC
+        VERSION=$(grep -oP '<version>\K[^<]+' "$NUSPEC_PATH")
         echo "Extracted version: $VERSION"
         echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
         

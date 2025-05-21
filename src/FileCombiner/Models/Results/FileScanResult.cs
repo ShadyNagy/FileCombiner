@@ -1,4 +1,7 @@
-﻿namespace FileCombiner.Models.Results;
+﻿using System;
+using System.Collections.Generic;
+
+namespace FileCombiner.Models.Results;
 
 /// <summary>
 /// Represents the result of a file scanning operation.
