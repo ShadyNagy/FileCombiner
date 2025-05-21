@@ -9,11 +9,19 @@ public class FileCombinerOptions
 {
 	/// <summary>
 	/// Gets or sets the base directory path to scan for files.
+	/// Can be null or empty if only ExplicitFilePaths are specified.
 	/// </summary>
-	public required string DirectoryPath { get; set; }
+	public string? DirectoryPath { get; set; }
+
+	/// <summary>
+	/// Gets or sets the explicit file paths to include in the combination.
+	/// If specified, these files will be included in addition to any files found by directory scanning.
+	/// </summary>
+	public string[] ExplicitFilePaths { get; set; } = [];
 
 	/// <summary>
 	/// Gets or sets the file extensions to include (e.g., ".cs", ".csproj").
+	/// Only used when scanning a directory.
 	/// </summary>
 	public string[] FileExtensions { get; set; } = [];
 

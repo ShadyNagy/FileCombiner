@@ -7,13 +7,15 @@ public class FileScanOptions
 {
 	/// <summary>
 	/// Gets or sets the directory path to scan.
+	/// Can be null or empty if only ExplicitFilePaths are specified.
 	/// </summary>
-	public required string DirectoryPath { get; set; }
+	public string? DirectoryPath { get; set; }
 
 	/// <summary>
 	/// Gets or sets the file extensions to include (e.g., ".cs", ".txt").
+	/// Only used when scanning a directory.
 	/// </summary>
-	public required string[] FileExtensions { get; set; }
+	public string[] FileExtensions { get; set; } = [];
 
 	/// <summary>
 	/// Gets or sets whether to include subdirectories in the scan.
@@ -35,6 +37,12 @@ public class FileScanOptions
 	/// Gets or sets the specific files to exclude by name (e.g., "Program.cs").
 	/// </summary>
 	public string[] ExcludeFiles { get; set; } = [];
+
+	/// <summary>
+	/// Gets or sets the explicit file paths to include in the scan results.
+	/// These files will be included regardless of other filtering criteria.
+	/// </summary>
+	public string[] ExplicitFilePaths { get; set; } = [];
 
 	/// <summary>
 	/// Gets or sets an optional filter function to apply to files.
