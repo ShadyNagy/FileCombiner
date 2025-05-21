@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileCombiner", "src\FileCombiner\FileCombiner.csproj", "{843A3296-6398-B72C-2EF8-2D830A985BBD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{83B78C10-48FC-40A1-886F-B9A217D493CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileCombiner.Tests", "Tests\FileCombiner.Tests\FileCombiner.Tests.csproj", "{2848A2F7-36F0-4674-9AD0-4C093F986AB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,12 +21,17 @@ Global
 		{843A3296-6398-B72C-2EF8-2D830A985BBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{843A3296-6398-B72C-2EF8-2D830A985BBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{843A3296-6398-B72C-2EF8-2D830A985BBD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2848A2F7-36F0-4674-9AD0-4C093F986AB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2848A2F7-36F0-4674-9AD0-4C093F986AB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2848A2F7-36F0-4674-9AD0-4C093F986AB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2848A2F7-36F0-4674-9AD0-4C093F986AB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{843A3296-6398-B72C-2EF8-2D830A985BBD} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{2848A2F7-36F0-4674-9AD0-4C093F986AB1} = {83B78C10-48FC-40A1-886F-B9A217D493CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1F4DD0F0-F160-4CCB-8445-EF499929772D}
